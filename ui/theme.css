@@ -1,0 +1,65 @@
+:root {
+  --ink: #16130f;
+  --panel: #221c16;
+  --panel-2: #2b231b;
+  --rule: #3a3026;
+  --copper: #c4844a;
+  --filament: #f0c070;
+  --ash: #a89a88;
+  --paper: #ede4d4;
+  --ember: #e25a2a;
+  --moss: #8aa67a;
+  --shadow: rgba(8, 6, 4, 0.45);
+  --font-display: "Bahnschrift Condensed", "Bahnschrift", "Segoe UI Variable Display", "Segoe UI", sans-serif;
+  --font-body: "Segoe UI Variable Text", "Segoe UI", sans-serif;
+  --font-mono: "Cascadia Mono", "Consolas", "Segoe UI Mono", monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-body);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--filament);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

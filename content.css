@@ -1,0 +1,5 @@
+html.bs-freeze-anim *,
+html.bs-freeze-anim *::before,
+html.bs-freeze-anim *::after {
+  animation-play-state: paused !important;
+}

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>BraveSaver screenshot 02</title>
+    <link rel="stylesheet" href="store-frame.css" />
+    <style>
+      .scene { display: grid; grid-template-columns: 1fr 420px; gap: 48px; align-items: center; }
+      h1.title { font-size: 58px; margin: 8px 0 16px; }
+      .sub { font-size: 22px; max-width: 32ch; }
+      .note { margin-top: 28px; font-family: var(--font-mono); font-size: 14px; color: var(--copper); }
+    </style>
+  </head>
+  <body>
+    <div class="scene">
+      <div>
+        <p class="kicker">Toolbar popup</p>
+        <h1 class="title">See the load.<br>Park the ballast.</h1>
+        <p class="sub">One click parks inactive tabs. Pinned, playing, and form tabs stay awake.</p>
+        <p class="note">Park = discard from RAM · tab stays in the strip</p>
+      </div>
+      <aside class="popup">
+        <div class="mast">
+          <div>
+            <p class="kicker">Load cell</p>
+            <h1>BraveSaver</h1>
+          </div>
+          <div>
+            <div class="toggle"></div>
+            <p class="toggle-label">Auto-park</p>
+          </div>
+        </div>
+        <p class="headline">3 tabs ready to park</p>
+        <svg class="wire" viewBox="0 0 320 36">
+          <path d="M8 22 C 40 6, 72 30, 104 18 S 168 8, 200 22 S 264 34, 312 16" fill="none" stroke="#3a3026" stroke-width="3"/>
+          <path d="M8 22 C 40 6, 72 30, 104 18 S 168 8, 200 22 S 264 34, 312 16" fill="none" stroke="#e25a2a" stroke-width="3" stroke-dasharray="420" stroke-dashoffset="90"/>
+        </svg>
+        <p class="load">Load 84%</p>
+        <dl class="stats">
+          <div><dt>Tabs</dt><dd>31</dd></div>
+          <div><dt>Parked</dt><dd>11</dd></div>
+          <div><dt>RAM free</dt><dd>1.6 GB</dd></div>
+        </dl>
+        <div class="presets"><span>Gentle</span><span class="on">Balanced</span><span>Hard</span></div>
+        <div class="rows">
+          <div class="row"><span class="dot"></span><span>reddit.com</span><span class="age">32m</span><span class="btn">Park</span></div>
+          <div class="row"><span class="dot"></span><span>news.ycombinator.com</span><span class="age">18m</span><span class="btn">Park</span></div>
+          <div class="row"><span class="dot"></span><span>docs.google.com</span><span class="age">pin</span><span class="btn">pin</span></div>
+          <div class="row"><span class="dot"></span><span>github.com</span><span class="age">parked</span><span class="btn wake">Wake</span></div>
+        </div>
+      </aside>
+    </div>
+  </body>
+</html>

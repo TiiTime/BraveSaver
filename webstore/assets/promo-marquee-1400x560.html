@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>BraveSaver marquee 1400x560</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body { width: 1400px; height: 560px; overflow: hidden; }
+      .tile {
+        width: 1400px;
+        height: 560px;
+        background:
+          radial-gradient(70% 90% at 90% 10%, rgba(196,132,74,.22), transparent 48%),
+          linear-gradient(180deg, #1c1813, #16130f);
+        color: #ede4d4;
+        font-family: "Bahnschrift Condensed", "Segoe UI", sans-serif;
+        padding: 88px 96px;
+        position: relative;
+      }
+      .kicker { color: #c4844a; letter-spacing: .28em; text-transform: uppercase; font-size: 18px; }
+      h1 { font-size: 96px; font-weight: 600; margin: 10px 0 16px; }
+      p { color: #a89a88; font-size: 28px; max-width: 22ch; line-height: 1.35; font-family: "Segoe UI", sans-serif; }
+      svg { position: absolute; right: 80px; bottom: 70px; width: 520px; }
+    </style>
+  </head>
+  <body>
+    <div class="tile">
+      <p class="kicker">Load cell</p>
+      <h1>BraveSaver</h1>
+      <p>Park idle tabs. Keep the strip. Spend less RAM and CPU.</p>
+      <svg viewBox="0 0 520 180" aria-hidden="true">
+        <path d="M10 120 C 80 20, 180 20, 250 90 S 390 180, 510 50" fill="none" stroke="#c4844a" stroke-width="10" stroke-linecap="round"/>
+        <circle cx="250" cy="48" r="12" fill="#f0c070"/>
+      </svg>
+    </div>
+  </body>
+</html>

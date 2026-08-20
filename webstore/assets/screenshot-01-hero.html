@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>BraveSaver screenshot 01</title>
+    <link rel="stylesheet" href="store-frame.css" />
+    <style>
+      .scene { display: grid; grid-template-columns: 1fr 420px; gap: 56px; align-items: center; }
+      h1 { font-size: 86px; margin: 10px 0 18px; }
+      .sub { font-size: 26px; max-width: 28ch; }
+      .pills { display: flex; gap: 10px; margin-top: 28px; }
+      .pills b {
+        font-weight: 500;
+        font-size: 14px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--filament);
+        border: 1px solid var(--copper);
+        padding: 8px 12px;
+        background: #3a2818;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="scene">
+      <div>
+        <p class="kicker">Load cell</p>
+        <h1>BraveSaver</h1>
+        <p class="sub">Parks idle tabs. Keeps the strip. Frees RAM and CPU without closing anything.</p>
+        <div class="pills">
+          <b>Auto-park</b>
+          <b>Memory pressure</b>
+          <b>Form-safe</b>
+        </div>
+      </div>
+      <aside class="popup">
+        <div class="mast">
+          <div>
+            <p class="kicker">Load cell</p>
+            <h1>BraveSaver</h1>
+          </div>
+          <div>
+            <div class="toggle"></div>
+            <p class="toggle-label">Auto-park</p>
+          </div>
+        </div>
+        <p class="headline">8 tabs parked</p>
+        <svg class="wire" viewBox="0 0 320 36">
+          <path d="M8 22 C 40 6, 72 30, 104 18 S 168 8, 200 22 S 264 34, 312 16" fill="none" stroke="#3a3026" stroke-width="3" stroke-linecap="round"/>
+          <path d="M8 22 C 40 6, 72 30, 104 18 S 168 8, 200 22 S 264 34, 312 16" fill="none" stroke="#c4844a" stroke-width="3" stroke-linecap="round" stroke-dasharray="420" stroke-dashoffset="160"/>
+        </svg>
+        <p class="load">Load 62%</p>
+        <dl class="stats">
+          <div><dt>Tabs</dt><dd>23</dd></div>
+          <div><dt>Parked</dt><dd>8</dd></div>
+          <div><dt>RAM free</dt><dd>4.1 GB</dd></div>
+        </dl>
+        <div class="presets"><span>Gentle</span><span class="on">Balanced</span><span>Hard</span></div>
+      </aside>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>BraveSaver screenshot 05</title>
+    <link rel="stylesheet" href="store-frame.css" />
+    <style>
+      .scene { padding: 64px 72px; }
+      h1 { font-size: 56px; margin: 8px 0 12px; }
+      .sub { font-size: 22px; max-width: 50ch; margin-bottom: 40px; }
+      .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+      .col {
+        border: 1px solid var(--rule);
+        background: var(--panel);
+        padding: 24px;
+        min-height: 360px;
+      }
+      .col h2 {
+        font-family: var(--font-display);
+        font-size: 28px;
+        margin-bottom: 8px;
+      }
+      .col p { color: var(--ash); margin-bottom: 18px; }
+      .tabbar {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .tab {
+        border: 1px solid var(--rule);
+        background: var(--ink);
+        padding: 8px 12px;
+        font-size: 13px;
+      }
+      .tab.live { border-color: var(--copper); color: var(--filament); }
+      .tab.parked { color: var(--ash); opacity: 0.7; }
+      .meter {
+        margin-top: 28px;
+        font-family: var(--font-mono);
+        font-size: 15px;
+        color: var(--copper);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="scene">
+      <p class="kicker">How parking works</p>
+      <h1>Same tabs. Less process.</h1>
+      <p class="sub">Discard unloads a tab from memory. Click it later — Brave reloads. You do not lose the tab.</p>
+      <div class="cols">
+        <div class="col">
+          <h2>Before</h2>
+          <p>Every idle page keeps a process, JS, and video alive.</p>
+          <div class="tabbar">
+            <span class="tab live">Gmail</span>
+            <span class="tab live">Reddit</span>
+            <span class="tab live">Docs</span>
+            <span class="tab live">HN</span>
+            <span class="tab live">Shop</span>
+            <span class="tab live">News</span>
+            <span class="tab live">YouTube</span>
+          </div>
+          <p class="meter">RAM  ·  high ·  CPU spinning in the back</p>
+        </div>
+        <div class="col">
+          <h2>After</h2>
+          <p>Idle tabs sleep. Active, pinned, and audio stay.</p>
+          <div class="tabbar">
+            <span class="tab live">Gmail</span>
+            <span class="tab parked">Reddit</span>
+            <span class="tab live">Docs</span>
+            <span class="tab parked">HN</span>
+            <span class="tab parked">Shop</span>
+            <span class="tab parked">News</span>
+            <span class="tab live">YouTube</span>
+          </div>
+          <p class="meter">RAM  ·  down ·  muted video paused</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

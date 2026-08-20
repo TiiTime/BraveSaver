@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="BraveSaver">
+  <rect width="128" height="128" rx="18" fill="#16130F"/>
+  <rect x="10" y="10" width="108" height="108" rx="12" fill="none" stroke="#3A3026" stroke-width="3"/>
+  <path d="M24 78 C 44 28, 84 28, 104 78" fill="none" stroke="#C4844A" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="64" cy="44" r="7" fill="#F0C070"/>
+</svg>

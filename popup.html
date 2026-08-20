@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BraveSaver</title>
+    <link rel="stylesheet" href="ui/theme.css" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="mast">
+        <div>
+          <p class="kicker">Load cell</p>
+          <h1>BraveSaver</h1>
+        </div>
+        <label class="switch">
+          <input id="enabled" type="checkbox" checked />
+          <span data-i18n="autoPark">Auto-Park</span>
+        </label>
+      </header>
+
+      <section class="readout" aria-live="polite">
+        <p id="headline" class="headline">—</p>
+        <div class="filament" id="filament" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <svg viewBox="0 0 320 36" aria-hidden="true">
+            <path
+              class="wire-track"
+              d="M8 22 C 40 6, 72 30, 104 18 S 168 8, 200 22 S 264 34, 312 16"
+            />
+            <path
+              id="wire-live"
+              class="wire-live"
+              d="M8 22 C 40 6, 72 30, 104 18 S 168 8, 200 22 S 264 34, 312 16"
+            />
+          </svg>
+          <p id="load-label" class="load-label" data-i18n="loadUnknown">Last —</p>
+        </div>
+        <dl class="stats">
+          <div>
+            <dt data-i18n="tabs">Tabs</dt>
+            <dd id="stat-tabs">—</dd>
+          </div>
+          <div>
+            <dt data-i18n="parked">Geparkt</dt>
+            <dd id="stat-parked">—</dd>
+          </div>
+          <div>
+            <dt data-i18n="ramFree">RAM frei</dt>
+            <dd id="stat-ram">—</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="presets" data-i18n-attr="aria-label:parkProfile" aria-label="Park-Profil">
+        <button type="button" data-preset="gentle" data-i18n="presetGentle">Sanft</button>
+        <button type="button" data-preset="balanced" data-i18n="presetBalanced">Ausgewogen</button>
+        <button type="button" data-preset="aggressive" data-i18n="presetAggressive">Hart</button>
+      </section>
+
+      <section class="list-wrap">
+        <div class="list-head">
+          <h2 data-i18n="tabs">Tabs</h2>
+          <button type="button" id="park-now" class="ghost" data-i18n="parkInactive">Inaktive parken</button>
+        </div>
+        <ul id="tab-list" class="tab-list"></ul>
+      </section>
+
+      <footer class="foot">
+        <button type="button" id="open-options" class="linkish" data-i18n="settings">Einstellungen</button>
+        <span data-i18n="footHint">Parken = RAM frei, Tab bleibt in der Leiste.</span>
+      </footer>
+    </main>
+    <script src="popup.js" type="module"></script>
+  </body>
+</html>

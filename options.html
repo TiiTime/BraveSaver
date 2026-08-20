@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BraveSaver Einstellungen</title>
+    <link rel="stylesheet" href="ui/theme.css" />
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header>
+        <p class="kicker">Load cell</p>
+        <h1>BraveSaver</h1>
+        <p class="lede" data-i18n="lede">
+          Parkt tote Tabs, lässt aktive, angepinnte, hörbare und Formular-Tabs in Ruhe.
+          Ziel: weniger RAM/CPU, ohne dass Brave selbst langsamer wird.
+        </p>
+      </header>
+
+      <form id="form">
+        <fieldset>
+          <legend data-i18n="language">Sprache</legend>
+          <label class="locale-row">
+            <select id="locale" name="locale">
+              <option value="de">Deutsch</option>
+              <option value="en">English</option>
+            </select>
+          </label>
+          <p class="hint" data-i18n="languageHint">UI von Popup, Einstellungen und Rechtsklick-Menü.</p>
+        </fieldset>
+
+        <fieldset>
+          <legend data-i18n="protection">Schutz</legend>
+          <label><input type="checkbox" name="protectPinned" /> <span data-i18n="protectPinned">Angeheftete Tabs nie parken</span></label>
+          <label><input type="checkbox" name="protectAudible" /> <span data-i18n="protectAudible">Tabs mit Ton nie parken</span></label>
+          <label><input type="checkbox" name="protectForms" /> <span data-i18n="protectForms">Tabs mit Tipp-Eingabe nie parken</span></label>
+          <label><input type="checkbox" name="parkDuplicates" /> <span data-i18n="parkDuplicates">Duplikate früher parken</span></label>
+          <label><input type="checkbox" name="muteForgotten" /> <span data-i18n="muteForgotten">Vergessenen Ton nach Wartezeit stummschalten</span></label>
+        </fieldset>
+
+        <fieldset>
+          <legend data-i18n="backgroundLoad">Hintergrund-Last</legend>
+          <label><input type="checkbox" name="pauseHiddenMutedVideo" /> <span data-i18n="pauseHiddenMutedVideo">Stumme Videos in unsichtbaren Tabs pausieren</span></label>
+          <label><input type="checkbox" name="pauseHiddenAnimations" /> <span data-i18n="pauseHiddenAnimations">CSS-Animationen in unsichtbaren Tabs einfrieren</span></label>
+        </fieldset>
+
+        <fieldset class="grid">
+          <legend data-i18n="timings">Zeiten</legend>
+          <label>
+            <span data-i18n="idleMinutes">Parken nach Inaktivität (Minuten)</span>
+            <input type="number" name="idleMinutes" min="1" max="240" />
+          </label>
+          <label>
+            <span data-i18n="idleMinutesPressure">Bei RAM-Druck (Minuten)</span>
+            <input type="number" name="idleMinutesPressure" min="1" max="60" />
+          </label>
+          <label>
+            <span data-i18n="maxPerSweep">Max. Parks pro Sweep</span>
+            <input type="number" name="maxPerSweep" min="1" max="50" />
+          </label>
+          <label>
+            <span data-i18n="muteAfterMinutes">Ton stumm nach (Minuten)</span>
+            <input type="number" name="muteAfterMinutes" min="5" max="240" />
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend data-i18n="whitelist">Nie parken (Hosts, eine Zeile pro Domain)</legend>
+          <textarea id="whitelist" rows="10" spellcheck="false"></textarea>
+        </fieldset>
+
+        <div class="actions">
+          <button type="submit" data-i18n="save">Speichern</button>
+          <p id="saved" class="saved" hidden data-i18n="saved">Gespeichert.</p>
+        </div>
+      </form>
+    </main>
+    <script src="options.js" type="module"></script>
+  </body>
+</html>

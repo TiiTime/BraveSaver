@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>BraveSaver screenshot 04</title>
+    <link rel="stylesheet" href="store-frame.css" />
+    <style>
+      .scene { display: grid; grid-template-columns: 420px 1fr; gap: 48px; align-items: start; }
+      h1.title { font-size: 52px; margin: 8px 0 14px; }
+      .sub { font-size: 20px; max-width: 28ch; }
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--rule);
+        padding: 22px 24px 26px;
+      }
+      legend {
+        font-family: var(--font-display);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--filament);
+        font-size: 13px;
+        margin-bottom: 12px;
+      }
+      .field {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--rule);
+        font-size: 16px;
+      }
+      select, .fake-select {
+        background: var(--ink);
+        border: 1px solid var(--copper);
+        color: var(--filament);
+        padding: 8px 12px;
+        font-family: var(--font-mono);
+        min-width: 160px;
+      }
+      .check {
+        width: 16px;
+        height: 16px;
+        border: 1px solid var(--copper);
+        background: #3a2818;
+        position: relative;
+        flex: none;
+      }
+      .check::after {
+        content: "";
+        position: absolute;
+        left: 3px;
+        top: 0;
+        width: 6px;
+        height: 11px;
+        border-right: 2px solid var(--filament);
+        border-bottom: 2px solid var(--filament);
+        transform: rotate(40deg);
+      }
+      .rowc { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; color: var(--paper); }
+    </style>
+  </head>
+  <body>
+    <div class="scene">
+      <div>
+        <p class="kicker">Settings</p>
+        <h1 class="title">Deutsch or English. Your call.</h1>
+        <p class="sub">Language, protection, and timing. Saved in the browser. Nothing leaves the machine.</p>
+      </div>
+      <div class="panel">
+        <p class="legend" style="font-family:var(--font-display);letter-spacing:.1em;text-transform:uppercase;color:var(--filament);font-size:13px;margin-bottom:12px;">Language</p>
+        <div class="field">
+          <span>UI language</span>
+          <span class="fake-select">English</span>
+        </div>
+        <p class="legend" style="font-family:var(--font-display);letter-spacing:.1em;text-transform:uppercase;color:var(--filament);font-size:13px;margin:22px 0 8px;">Protection</p>
+        <div class="rowc"><span class="check"></span> Never park pinned tabs</div>
+        <div class="rowc"><span class="check"></span> Never park tabs with sound</div>
+        <div class="rowc"><span class="check"></span> Never park tabs with typed input</div>
+        <div class="rowc"><span class="check"></span> Park duplicate tabs sooner</div>
+        <p class="legend" style="font-family:var(--font-display);letter-spacing:.1em;text-transform:uppercase;color:var(--filament);font-size:13px;margin:22px 0 8px;">Background load</p>
+        <div class="rowc"><span class="check"></span> Pause muted videos in hidden tabs</div>
+        <div class="rowc"><span class="check"></span> Freeze CSS animations in hidden tabs</div>
+      </div>
+    </div>
+  </body>
+</html>
