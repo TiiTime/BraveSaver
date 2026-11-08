@@ -1,56 +1,25 @@
-# BraveSaver — Privacy Policy
+# BraveSaver Privacy Policy
 
-**Last updated:** 2026-08-20  
-**Developer:** Tii  
-**Extension:** BraveSaver (browser extension for Chrome / Brave)
+- Last updated: 2026-11-08
+- Developer: Tii
+- Applies to BraveSaver 1.0.3
 
-## Summary
+## Purpose and local processing
 
-BraveSaver does not sell your data. BraveSaver does not run its own servers. Nothing you browse is uploaded to Tii.
+BraveSaver reduces the resource usage of open browser tabs. Gentle parking pauses muted media and CSS animations in hidden tabs while keeping pages loaded. Optional tab unloading frees system memory and causes a page to reload when it is reopened. Automatic unloading is off by default.
 
-## What the extension does
+BraveSaver processes open-tab metadata locally, including URLs, titles, last activity and tab state. It uses this information to show tabs in the popup, apply protection rules and site exceptions, and choose tabs for optional unloading. It reads system memory information for the popup and optional memory-pressure rules. BraveSaver does not build a browsing-history log or transmit open-tab metadata to Tii.
 
-BraveSaver parks idle tabs (`chrome.tabs.discard`) and can pause muted media / CSS animations in **hidden** tabs so the browser uses less RAM and CPU.
+## Information stored in the browser
 
-## What is stored locally
+- Local storage keeps preferences, site exceptions, basic unload counters and the last update version shown.
+- Session storage keeps tab IDs with a marker when an input event is detected on a supported page. The marker helps protect drafts from unloading. BraveSaver does not read or store what you typed, including form values and passwords.
+- Session markers are cleared when their tabs close or the browser session ends. Persistent extension data can be removed by uninstalling BraveSaver.
 
-In your browser, via `chrome.storage`:
+## Network and third parties
 
-- Settings (on/off, language, park timings, protection flags, site whitelist)
-- Lightweight local stats (how many tabs were parked)
-
-This data stays on your device. It is not synced to Tii.
-
-## What runs on web pages
-
-A small content script runs on `http`/`https` pages to:
-
-- Notice that you typed in a form, so that tab is **not** parked
-- Pause **muted** video/audio when the tab is hidden
-- Pause CSS animations while the tab is hidden
-
-The script does **not** read the page’s article text, passwords, or form values for any other purpose. It does **not** send page contents anywhere.
-
-## What stays on the device
-
-Tab titles, URLs, discard state, and (if the browser allows it) approximate memory pressure are processed **locally** so BraveSaver can decide which tabs to park. They are not transmitted to Tii.
-
-## What we do not collect
-
-- No account
-- No analytics by Tii
-- No advertising identifiers
-- No browsing history uploaded to Tii
-- No sale of data to third parties
-
-## Third parties
-
-None. BraveSaver does not call remote APIs.
+BraveSaver does not use developer servers, accounts, analytics, advertising or remotely hosted code. It does not sell user data. The popup may display the favicon URL provided by the browser for an open tab. If the image is not cached, displaying it can cause a normal image request to the icon host. The optional review link opens the Chrome Web Store only when clicked. The store handles any review you choose to submit.
 
 ## Contact
 
-Questions: https://github.com/TiiTime/BraveSaver/issues
-
-## Changes
-
-This policy may be updated in the repository. The published URL always shows the current version.
+https://github.com/TiiTime/BraveSaver/issues
