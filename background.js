@@ -7,14 +7,19 @@ import {
   hostnameOf,
   pickForgottenAudio,
   pickParkCandidates,
+  protectionReason,
 } from "./lib/heuristics.js";
 
 const ALARM = "bravesaver-sweep";
-const DIRTY_KEY = "dirtyTabIds";
+const DIRTY_PREFIX = "dirtyTab:";
+let sweepQueue = Promise.resolve();
+let menuQueue = Promise.resolve();
+let openingUpdate = false;
 
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener((details) => {
   ensureAlarm();
   setupMenus();
+  showUpdatePage(details).catch((error) => console.warn("BraveSaver update page", error));
 });
 
 chrome.runtime.onStartup.addListener(() => {
@@ -23,7 +28,21 @@ chrome.runtime.onStartup.addListener(() => {
 });
 
 ensureAlarm();
-setupMenus();
+
+async function showUpdatePage({ reason, previousVersion }) {
+  const { version } = chrome.runtime.getManifest();
+  if (reason !== "update" || !previousVersion || previousVersion === version || openingUpdate) return;
+
+  openingUpdate = true;
+  try {
+    const { lastUpdateShown } = await chrome.storage.local.get("lastUpdateShown");
+    if (lastUpdateShown === version) return;
+    await chrome.tabs.create({ url: chrome.runtime.getURL("updates.html") });
+    await chrome.storage.local.set({ lastUpdateShown: version });
+  } finally {
+    openingUpdate = false;
+  }
+}
 
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === ALARM) {
@@ -70,44 +89,49 @@ function ensureAlarm() {
   });
 }
 
-async function setupMenus() {
-  const settings = await loadSettings();
-  const locale = settings.locale;
-  await chrome.contextMenus.removeAll();
-  chrome.contextMenus.create({
-    id: "park-tab",
-    title: t(locale, "menuParkTab"),
-    contexts: ["page", "action"],
+function menuOperation(operation) {
+  return new Promise((resolve, reject) => {
+    operation(() => {
+      const error = chrome.runtime.lastError;
+      if (error) reject(new Error(error.message));
+      else resolve();
+    });
   });
-  chrome.contextMenus.create({
-    id: "park-others",
-    title: t(locale, "menuParkOthers"),
-    contexts: ["page", "action"],
-  });
-  chrome.contextMenus.create({
-    id: "never-park",
-    title: t(locale, "menuNeverPark"),
-    contexts: ["page"],
-  });
+}
+
+function setupMenus() {
+  menuQueue = menuQueue.then(async () => {
+    const { locale } = await loadSettings();
+    await menuOperation((done) => chrome.contextMenus.removeAll(done));
+    const entries = [
+      { id: "park-tab", title: t(locale, "menuParkTab"), contexts: ["page", "action"] },
+      { id: "park-others", title: t(locale, "menuParkOthers"), contexts: ["page", "action"] },
+      { id: "never-park", title: t(locale, "menuNeverPark"), contexts: ["page"] },
+    ];
+    for (const entry of entries) {
+      await menuOperation((done) => chrome.contextMenus.create(entry, done));
+    }
+  }).catch((error) => console.warn("BraveSaver menu setup", error));
 }
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== "local" || !changes.settings) return;
   const prev = changes.settings.oldValue?.locale;
   const next = changes.settings.newValue?.locale;
-  if (prev !== next) setupMenus().catch(() => {});
+  if (prev !== next) setupMenus();
 });
 
 async function getDirtyIds() {
-  const stored = await chrome.storage.session.get(DIRTY_KEY);
-  return new Set(stored[DIRTY_KEY] || []);
+  const stored = await chrome.storage.session.get(null);
+  return new Set(Object.keys(stored)
+    .filter((key) => key.startsWith(DIRTY_PREFIX))
+    .map((key) => Number(key.slice(DIRTY_PREFIX.length))));
 }
 
 async function markDirty(tabId, dirty) {
-  const ids = await getDirtyIds();
-  if (dirty) ids.add(tabId);
-  else ids.delete(tabId);
-  await chrome.storage.session.set({ [DIRTY_KEY]: [...ids] });
+  const key = `${DIRTY_PREFIX}${tabId}`;
+  if (dirty) await chrome.storage.session.set({ [key]: true });
+  else await chrome.storage.session.remove(key);
 }
 
 async function handleMessage(message, sender) {
@@ -121,7 +145,7 @@ async function handleMessage(message, sender) {
     case "GET_STATUS":
       return snapshot();
     case "SET_ENABLED":
-      await saveSettings({ enabled: Boolean(message.enabled) });
+      await saveSettings({ autoUnload: Boolean(message.enabled) });
       await refreshBadge();
       return snapshot();
     case "SET_PRESET":
@@ -130,9 +154,12 @@ async function handleMessage(message, sender) {
     case "PARK_NOW":
       await sweep("manual", { ignoreIdle: true });
       return snapshot();
+    case "WAKE_ALL":
+      await wakeDiscardedTabs();
+      return snapshot();
     case "PARK_TAB":
       if (message.tabId != null) {
-        await chrome.tabs.discard(message.tabId);
+        await discardIfSafe(message.tabId);
       }
       await refreshBadge();
       return snapshot();
@@ -157,7 +184,7 @@ async function handleMessage(message, sender) {
 
 async function handleMenu(info, tab) {
   if (info.menuItemId === "park-tab" && tab?.id != null) {
-    await chrome.tabs.discard(tab.id);
+    await discardIfSafe(tab.id);
     await refreshBadge();
     return;
   }
@@ -175,11 +202,55 @@ async function handleMenu(info, tab) {
   }
 }
 
-async function sweep(reason, { ignoreIdle = false, keepTabId = null } = {}) {
+async function discardedTabs() {
+  const tabs = await chrome.tabs.query({});
+  return tabs.filter((tab) => tab.discarded);
+}
+
+async function wakeDiscardedTabs() {
+  const parked = await discardedTabs();
+  for (const tab of parked) {
+    try {
+      await chrome.tabs.reload(tab.id);
+    } catch {
+      // Tab gone.
+    }
+  }
+  await refreshBadge();
+}
+
+async function discardIfSafe(tabId) {
   const settings = await loadSettings();
-  if (!settings.enabled && reason !== "manual" && reason !== "menu") {
+  const dirtyIds = await getDirtyIds();
+  const tab = await chrome.tabs.get(tabId);
+  if (tab.discarded || protectionReason(tab, settings, dirtyIds)) return false;
+
+  if (settings.protectForms) {
+    // Treat a missing content script as unknown rather than assuming no draft.
+    const state = await chrome.tabs.sendMessage(tabId, { type: "GET_FORM_STATE" })
+      .catch(() => null);
+    if (state?.dirty !== false) return false;
+  }
+
+  const latestDirtyIds = await getDirtyIds();
+  const latest = await chrome.tabs.get(tabId);
+  if (latest.discarded || latest.url !== tab.url || latest.status === "loading" ||
+      protectionReason(latest, settings, latestDirtyIds)) return false;
+  const discarded = await chrome.tabs.discard(tabId);
+  return discarded?.discarded === true;
+}
+
+function sweep(reason, options) {
+  const pending = sweepQueue.then(() => runSweep(reason, options));
+  sweepQueue = pending.catch(() => {});
+  return pending;
+}
+
+async function runSweep(reason, { ignoreIdle = false, keepTabId = null } = {}) {
+  const settings = await loadSettings();
+  if (!settings.autoUnload && reason !== "manual" && reason !== "menu") {
     await refreshBadge();
-    return { parked: 0 };
+    return { parked: 0, parkedIds: [] };
   }
 
   const tabs = await chrome.tabs.query({});
@@ -214,10 +285,12 @@ async function sweep(reason, { ignoreIdle = false, keepTabId = null } = {}) {
   }
 
   let parked = 0;
+  const parkedIds = [];
   for (const item of candidates) {
     try {
-      await chrome.tabs.discard(item.tab.id);
+      if (!await discardIfSafe(item.tab.id)) continue;
       parked += 1;
+      parkedIds.push(item.tab.id);
     } catch {
       // Some tabs (chrome://, DevTools) refuse discard.
     }
@@ -235,7 +308,7 @@ async function sweep(reason, { ignoreIdle = false, keepTabId = null } = {}) {
   });
 
   await refreshBadge();
-  return { parked };
+  return { parked, parkedIds };
 }
 
 async function snapshot() {
@@ -248,7 +321,7 @@ async function snapshot() {
   const candidates = pickParkCandidates(tabs, { settings, dirtyIds, pressure, now });
   const stats = (await chrome.storage.local.get("stats")).stats || {};
 
-  await refreshBadge(parkedTabs.length, settings.enabled);
+  await refreshBadge(parkedTabs.length, settings.autoUnload);
 
   return {
     ok: true,
@@ -264,6 +337,7 @@ async function snapshot() {
       dirty: dirtyIds.size,
       ready: candidates.length,
     },
+    canWake: parkedTabs.length > 0,
     stats,
     tabs: tabs
       .map((tab) => ({
@@ -275,12 +349,7 @@ async function snapshot() {
         pinned: Boolean(tab.pinned),
         audible: Boolean(tab.audible),
         active: Boolean(tab.active),
-        protected: Boolean(
-          tab.active ||
-            tab.pinned ||
-            tab.audible ||
-            dirtyIds.has(tab.id)
-        ),
+        protectionReason: protectionReason(tab, settings, dirtyIds),
         age: formatAge(now - (tab.lastAccessed || now)),
         ageMs: now - (tab.lastAccessed || now),
       }))
@@ -299,10 +368,10 @@ async function refreshBadge(parkedCount, enabled) {
     const settings = await loadSettings();
     const tabs = await chrome.tabs.query({ discarded: true });
     parked = tabs.length;
-    isEnabled = settings.enabled;
+    isEnabled = settings.autoUnload;
   }
 
-  const text = !isEnabled ? "off" : parked > 0 ? (parked > 99 ? "99+" : String(parked)) : "";
+  const text = parked > 0 ? (parked > 99 ? "99+" : String(parked)) : "";
   await chrome.action.setBadgeText({ text });
   await chrome.action.setBadgeBackgroundColor({
     color: isEnabled ? "#C4844A" : "#6B6258",

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "BraveSaver",
-  "version": "1.0.0",
-  "description": "Parkt inaktive Tabs und drosselt Hintergrund-Last, damit Brave weniger RAM und CPU zieht.",
+  "version": "1.0.3",
+  "description": "Drosselt Hintergrund-Tabs ohne Neuladen. Optionales Entladen gibt zusätzlichen RAM frei.",
   "minimum_chrome_version": "114",
   "permissions": [
     "tabs",

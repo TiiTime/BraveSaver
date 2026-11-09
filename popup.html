@@ -16,12 +16,13 @@
         </div>
         <label class="switch">
           <input id="enabled" type="checkbox" checked />
-          <span data-i18n="autoPark">Auto-Park</span>
+          <span data-i18n="autoPark">Auto-Parken (Entladen)</span>
         </label>
       </header>
 
       <section class="readout" aria-live="polite">
         <p id="headline" class="headline">—</p>
+        <p id="soft-park-status" class="load-label">—</p>
         <div class="filament" id="filament" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
           <svg viewBox="0 0 320 36" aria-hidden="true">
             <path
@@ -46,7 +47,7 @@
             <dd id="stat-parked">—</dd>
           </div>
           <div>
-            <dt data-i18n="ramFree">RAM frei</dt>
+            <dt data-i18n="ramFree">Freier System-RAM</dt>
             <dd id="stat-ram">—</dd>
           </div>
         </dl>
@@ -61,16 +62,30 @@
       <section class="list-wrap">
         <div class="list-head">
           <h2 data-i18n="tabs">Tabs</h2>
-          <button type="button" id="park-now" class="ghost" data-i18n="parkInactive">Inaktive parken</button>
+          <select id="tab-filter" data-i18n-attr="aria-label:filterTabs" aria-label="Tabs filtern">
+            <option value="all" data-i18n="filterAll">Alle</option>
+            <option value="parked" data-i18n="parked">Entladen</option>
+            <option value="protected" data-i18n="filterProtected">Geschützt</option>
+          </select>
+          <button type="button" id="park-now" class="ghost" data-i18n="parkInactive">Inaktive entladen</button>
         </div>
         <ul id="tab-list" class="tab-list"></ul>
       </section>
 
       <footer class="foot">
         <button type="button" id="open-options" class="linkish" data-i18n="settings">Einstellungen</button>
-        <span data-i18n="footHint">Parken = RAM frei, Tab bleibt in der Leiste.</span>
+        <span data-i18n="footHint">Sanftes Parken lässt die Seite geladen.</span>
       </footer>
     </main>
+    <dialog id="unload-confirm" aria-labelledby="unload-question">
+      <form method="dialog">
+        <p id="unload-question"></p>
+        <div class="confirm-actions">
+          <button class="ghost" value="cancel" autofocus data-i18n="cancel">Abbrechen</button>
+          <button class="ghost" value="confirm" data-i18n="confirm">Bestätigen</button>
+        </div>
+      </form>
+    </dialog>
     <script src="popup.js" type="module"></script>
   </body>
 </html>

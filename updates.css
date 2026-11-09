@@ -1,0 +1,94 @@
+:root {
+  color-scheme: dark;
+}
+
+body {
+  min-height: 100vh;
+  background: radial-gradient(ellipse at 80% 0%, #352315, var(--ink) 60%);
+}
+
+.shell {
+  max-width: 840px;
+  margin: auto;
+  padding: 0 clamp(18px, 5vw, 38px) 32px;
+}
+
+header, .brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+header {
+  justify-content: space-between;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.brand {
+  font: 650 24px var(--font-display);
+}
+
+#language {
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  padding: 7px 14px;
+}
+
+main {
+  margin-top: clamp(28px, 6vw, 56px);
+}
+
+.kicker {
+  color: var(--filament);
+  font: 13px var(--font-mono);
+}
+
+h1 {
+  margin: 12px 0 24px;
+  font: 650 clamp(32px, 6vw, 54px)/1.1 var(--font-display);
+}
+
+section {
+  margin: 16px 0;
+  border: 1px solid var(--rule);
+  background: var(--panel);
+  padding: clamp(16px, 4vw, 28px);
+  line-height: 1.55;
+}
+
+h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+ul {
+  padding-left: 1.2em;
+  margin-bottom: 0;
+}
+
+li + li {
+  margin-top: 8px;
+}
+
+.review {
+  border-color: var(--copper);
+}
+
+.review a {
+  display: block;
+  padding: 12px;
+  background: var(--filament);
+  color: var(--ink);
+  text-align: center;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.review a:hover {
+  background: var(--paper);
+}
+
+.hint {
+  color: var(--ash);
+}

@@ -1,5 +1,10 @@
 # Web Store assets
 
+**Upload für 1.0.3:** [Checkliste](UPLOAD_CHECKLIST.md) · [Screenshot Deutsch](assets/bravesaver-1.0.3-de.jpg) · [Screenshot Englisch](assets/bravesaver-1.0.3-en.jpg). Die weiter unten aufgeführten Screenshots stammen aus früheren Versionen.
+
+- **Store-Eintrag:** https://chromewebstore.google.com/detail/bravesaver/biaipdcolloigdioodclahglfphchpca
+- **Item-ID:** `biaipdcolloigdioodclahglfphchpca`
+
 Material für den Chrome Web Store. Upload-Schritte: **[UPLOAD_CHECKLIST.md](UPLOAD_CHECKLIST.md)**  
 Copy-Paste: **[STORE_LISTING.md](STORE_LISTING.md)** · Privacy: **[PRIVACY.md](PRIVACY.md)**
 

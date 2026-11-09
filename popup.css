@@ -191,9 +191,39 @@ h1 {
   font-weight: 600;
 }
 
+#tab-filter {
+  min-width: 0;
+  color: var(--paper);
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  padding: 4px;
+}
+
 .ghost {
   font-size: 12px;
   padding: 4px 8px;
+}
+
+.ghost.wake {
+  border-color: var(--moss);
+  color: var(--moss);
+}
+
+#unload-confirm {
+  max-width: 300px;
+  color: var(--paper);
+  background: var(--panel);
+  border: 1px solid var(--rule);
+}
+
+#unload-confirm::backdrop {
+  background: rgb(0 0 0 / 60%);
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .tab-list {

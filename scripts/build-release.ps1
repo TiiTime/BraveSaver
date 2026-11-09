@@ -20,6 +20,9 @@ $files = @(
     'options.html',
     'options.js',
     'options.css',
+    'updates.html',
+    'updates.js',
+    'updates.css',
     'LICENSE'
 )
 foreach ($f in $files) {

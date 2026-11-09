@@ -9,6 +9,10 @@ const statTabs = document.getElementById("stat-tabs");
 const statParked = document.getElementById("stat-parked");
 const statRam = document.getElementById("stat-ram");
 const tabList = document.getElementById("tab-list");
+const tabFilter = document.getElementById("tab-filter");
+const softParkStatus = document.getElementById("soft-park-status");
+const unloadDialog = document.getElementById("unload-confirm");
+let lastStatus;
 
 function send(type, payload = {}) {
   return chrome.runtime.sendMessage({ type, ...payload });
@@ -16,6 +20,15 @@ function send(type, payload = {}) {
 
 function localeOf(status) {
   return normalizeLocale(status?.settings?.locale);
+}
+
+function confirmUnload(locale, question) {
+  document.getElementById("unload-question").textContent = t(locale, question);
+  unloadDialog.returnValue = "";
+  return new Promise((resolve) => {
+    unloadDialog.addEventListener("close", () => resolve(unloadDialog.returnValue === "confirm"), { once: true });
+    unloadDialog.showModal();
+  });
 }
 
 function setFilament(ratio, known, locale) {
@@ -35,15 +48,18 @@ function render(status) {
 
   const locale = localeOf(status);
   applyDom(locale);
+  lastStatus = status;
 
   const { settings, counts, pressure } = status;
-  enabledEl.checked = settings.enabled;
+  enabledEl.checked = settings.autoUnload;
+  const softParkEnabled = settings.pauseHiddenMutedVideo || settings.pauseHiddenAnimations;
+  softParkStatus.textContent = t(locale, softParkEnabled ? "softParkOn" : "softParkOff");
 
   document.querySelectorAll("[data-preset]").forEach((button) => {
     button.setAttribute("aria-pressed", String(button.dataset.preset === settings.preset));
   });
 
-  if (!settings.enabled) {
+  if (!settings.autoUnload && counts.parked === 0) {
     headlineEl.textContent = t(locale, "autoParkOff");
   } else if (counts.parked === 0) {
     headlineEl.textContent =
@@ -59,8 +75,18 @@ function render(status) {
   statRam.textContent = pressure.known ? pressure.availableLabel : "n/a";
   setFilament(pressure.ratio, pressure.known, locale);
 
+  const parkNow = document.getElementById("park-now");
+  const canWake = Boolean(status.canWake) || counts.parked > 0;
+  parkNow.dataset.i18n = canWake ? "wakeParked" : "parkInactive";
+  parkNow.textContent = t(locale, parkNow.dataset.i18n);
+  parkNow.classList.toggle("wake", canWake);
+
   tabList.replaceChildren();
-  const visible = status.tabs.slice(0, 18);
+  const visible = status.tabs.filter((tab) => {
+    if (tabFilter.value === "parked") return tab.discarded;
+    if (tabFilter.value === "protected") return !tab.discarded && tab.protectionReason;
+    return true;
+  });
   if (visible.length === 0) {
     const empty = document.createElement("li");
     empty.className = "empty";
@@ -105,11 +131,7 @@ function render(status) {
     pill.className = "pill";
     pill.textContent = tab.discarded
       ? t(locale, "pillIdle")
-      : tab.pinned
-        ? t(locale, "pillPin")
-        : tab.audible
-          ? t(locale, "pillAudio")
-          : "";
+      : tab.protectionReason ? t(locale, tab.protectionReason) : "";
     row.append(pill);
 
     const action = document.createElement("button");
@@ -120,12 +142,13 @@ function render(status) {
       action.addEventListener("click", async () => {
         render(await send("WAKE_TAB", { tabId: tab.id }));
       });
-    } else if (tab.active || tab.pinned) {
+    } else if (tab.protectionReason) {
       action.disabled = true;
-      action.textContent = tab.active ? t(locale, "active") : t(locale, "pin");
+      action.textContent = t(locale, "park");
     } else {
       action.textContent = t(locale, "park");
       action.addEventListener("click", async () => {
+        if (!await confirmUnload(locale, "confirmUnload")) return;
         render(await send("PARK_TAB", { tabId: tab.id }));
       });
     }
@@ -142,7 +165,16 @@ function fallbackIcon() {
 }
 
 enabledEl.addEventListener("change", async () => {
-  render(await send("SET_ENABLED", { enabled: enabledEl.checked }));
+  const enabled = enabledEl.checked;
+  if (enabled) {
+    enabledEl.checked = false;
+    if (!await confirmUnload(localeOf(lastStatus), "confirmAutoUnload")) return;
+  }
+  render(await send("SET_ENABLED", { enabled }));
+});
+
+tabFilter.addEventListener("change", () => {
+  if (lastStatus) render(lastStatus);
 });
 
 document.querySelectorAll("[data-preset]").forEach((button) => {
@@ -152,7 +184,10 @@ document.querySelectorAll("[data-preset]").forEach((button) => {
 });
 
 document.getElementById("park-now").addEventListener("click", async () => {
-  render(await send("PARK_NOW"));
+  if (!lastStatus) return;
+  const canWake = lastStatus.canWake;
+  if (!canWake && !await confirmUnload(localeOf(lastStatus), "confirmUnload")) return;
+  render(await send(canWake ? "WAKE_ALL" : "PARK_NOW"));
 });
 
 document.getElementById("open-options").addEventListener("click", () => {

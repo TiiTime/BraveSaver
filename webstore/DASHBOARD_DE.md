@@ -1,71 +1,45 @@
-# Chrome Web Store — Datenschutz-Felder (DE)
+# BraveSaver – Datenschutzfelder im Chrome Web Store
 
-Zum Kopieren ins Developer Dashboard. Limit je Feld: 1000 Zeichen.
-
-## Remote code
-
-**Nein, ich verwende keinen Remote-Code.**
-
-Nicht „Ja“ wählen. BraveSaver lädt kein JS/Wasm von außen, nutzt kein `eval`, keine externen Module.
-
-## Datennutzung
-
-Keine der Daten-Kategorien ankreuzen (keine Erfassung durch Tii).
-
-Die drei Bestätigungen anhaken:
-
-1. Kein Verkauf / keine Weitergabe außer in den erlaubten Fällen
-2. Nutzerdaten nicht außerhalb des alleinigen Zwecks
-3. Keine Nutzung für Kredit-/Bonitätsprüfung
-
-## URL der Datenschutzerklärung
-
-https://github.com/TiiTime/BraveSaver/blob/master/webstore/PRIVACY.md
-
----
+Stand: BraveSaver 1.0.3. Die folgenden Texte sind für den bestehenden Store-Eintrag.
 
 ## Beschreibung des alleinigen Zwecks
 
-BraveSaver hat einen einzigen Zweck: den RAM- und CPU-Verbrauch des Browsers zu senken, indem ungenutzte Tabs geparkt (chrome.tabs.discard) und Last in unsichtbaren Tabs gedrosselt wird. Geparkte Tabs bleiben in der Tableiste und werden beim Anklicken neu geladen. Die Erweiterung schließt keine Tabs, ersetzt keine Werbeblocker und sendet keine Daten an eigene Server. Einstellungen und Park-Logik laufen ausschließlich lokal.
+BraveSaver reduziert den Ressourcenverbrauch offener Browser-Tabs. Standardmäßig pausiert die Erweiterung stumme Medien und CSS-Animationen in unsichtbaren Tabs und lässt die Seiten geladen. Optional können Nutzer inaktive Tabs entladen, um RAM freizugeben. Entladene Tabs bleiben in der Tab-Leiste und werden beim Öffnen neu geladen. Automatisches Entladen ist standardmäßig ausgeschaltet.
 
----
+## tabs
 
-## Begründung für die Berechtigung „tabs“
+BraveSaver verarbeitet Titel, URL, letzte Aktivität und Status offener Tabs lokal. Damit zeigt die Erweiterung Tabs im Popup an, berücksichtigt Website-Ausnahmen und wählt geeignete Tabs für das optionale Entladen aus.
 
-Die tabs-API ist nötig, um offene Tabs zu listen, Inaktivität (lastAccessed) zu erkennen und ungenutzte Tabs mit chrome.tabs.discard aus dem Speicher zu nehmen. So bleibt der Tab in der Leiste, der Prozess entfällt. Zusätzlich braucht BraveSaver Tab-Metadaten (aktiv, angeheftet, Ton, URL), damit aktive, angeheftete, hörbare und Whitelist-Tabs nicht geparkt werden. Es wird keine Browsing-History an Server gesendet.
+## storage
 
----
+BraveSaver speichert Einstellungen, Website-Ausnahmen, einfache Entladezähler und die zuletzt angezeigte Update-Version lokal im Browser. Während der Browsersitzung speichert es zu erkannten Eingaben die Tab-ID und eine Markierung. Eingegebener Text wird nicht gelesen oder gespeichert.
 
-## Begründung für die Berechtigung „storage“
+## alarms
 
-chrome.storage speichert nur lokale Einstellungen: Ein/Aus, Sprache, Park-Profil, Schutzoptionen, Wartezeiten und die Domain-Whitelist. Optional werden einfache Zähler (wie viele Tabs geparkt wurden) lokal gehalten. Keine Konten, keine Sync-Server von Tii, keine personenbezogenen Profile. Die Daten bleiben im Browser des Nutzers.
+Browser-Alarme stoßen regelmäßige Prüfungen an. Wenn automatisches Entladen aktiviert ist, prüft BraveSaver, welche Tabs die eingestellten Bedingungen erfüllen. Der Hintergrunddienst kann zwischen den Prüfungen ruhen.
 
----
+## idle
 
-## Begründung für die Berechtigung „alarms“
+Wenn das Gerät inaktiv oder gesperrt wird, stößt BraveSaver eine zusätzliche Prüfung an. Das automatische Entladen setzt weiterhin voraus, dass die Funktion aktiviert ist und der Tab die Schutzregeln und Wartezeiten erfüllt.
 
-Manifest V3 Service Worker schlafen. chrome.alarms weckt BraveSaver etwa einmal pro Minute für den Park-Sweep. Ohne Alarme gäbe es keinen zuverlässigen Hintergrund-Timer, und die Erweiterung müsste den Worker künstlich wach halten — das würde mehr Ressourcen kosten, nicht weniger.
+## system.memory
 
----
+BraveSaver liest den gesamten und verfügbaren System-RAM für die Anzeige im Popup. Bei aktiviertem automatischem Entladen nutzt BraveSaver dieselben Werte, um auf Speicherdruck zu reagieren. Die Werte werden lokal verarbeitet.
 
-## Begründung für die Berechtigung „idle“
+## contextMenus
 
-chrome.idle erkennt, wenn der Rechner ungenutzt oder gesperrt ist. Dann darf BraveSaver inaktive Tabs früher parken, weil niemand vor dem Bildschirm sitzt. Sobald wieder gearbeitet wird, bleibt der Schutz für den aktiven Tab bestehen. Es wird kein Nutzungsprofil erzeugt oder übertragen.
+Das Rechtsklickmenü bietet Befehle zum Entladen von Tabs und zum Hinzufügen von Websites zu den Ausnahmen.
 
----
+## Hostberechtigungen für HTTP und HTTPS
 
-## Begründung für die Berechtigung „system.memory“
+Ein im Paket enthaltenes Seitenskript pausiert stumme Medien und CSS-Animationen in unsichtbaren Tabs und erkennt Eingabeereignisse für den Tab-Schutz. Es liest keine Feldwerte oder Passwörter. Der Zugriff auf HTTP- und HTTPS-Seiten ist erforderlich, damit diese Funktionen auf geöffneten Websites auch ohne vorherigen Klick auf das Erweiterungssymbol arbeiten.
 
-chrome.system.memory liefert nur grobe Speicherwerte (Kapazität / frei) auf dem Gerät. Bei knappem RAM parkt BraveSaver früher und mehr Tabs. Die Werte bleiben lokal und gehen nicht an Tii oder Dritte. Ohne diese API gäbe es nur Zeit-Heuristik, kein Reagieren auf echten Speicherdruck.
+## Remote-Code und Datennutzung
 
----
+- Remote-Code: **Nein**. Alle Erweiterungsskripte liegen im Paket.
+- **Webverlauf** deckt die lokale Verarbeitung von URLs und Domains offener Tabs ab. BraveSaver erstellt daraus keine Verlaufsliste und übermittelt diese Angaben nicht an den Entwickler.
+- Die Datenschutzerklärung beschreibt zusätzlich die lokale Eingabemarkierung und die Verwendung der vom Browser bereitgestellten Tab-Symbole.
 
-## Begründung für die Berechtigung „contextMenus“
+## URL der Datenschutzerklärung
 
-Über das Kontextmenü kann der Nutzer einen Tab parken, andere Tabs parken oder die aktuelle Website auf die Whitelist setzen („nie parken“). Das ist Bedienung, keine Datenerfassung. Es werden keine Menü-Klicks oder URLs nach außen gesendet.
-
----
-
-## Begründung für die Hostberechtigung
-
-BraveSaver deklariert kein beliebiges Remote-Fetch. Ein kleines Content-Script läuft auf http-/https-Seiten, damit der alleinige Zweck lokal erfüllt wird: (1) merken, dass in einem Formular getippt wurde, damit dieser Tab nicht geparkt wird; (2) stumme Videos/Audio in unsichtbaren Tabs pausieren; (3) CSS-Animationen in unsichtbaren Tabs anhalten. Seiteninhalt, Passwörter und Formulardaten werden nicht ausgelesen, nicht gespeichert und nicht übertragen. Kein Tracking, keine Werbung, keine Dritt-APIs.
+https://raw.githubusercontent.com/TiiTime/BraveSaver/refs/heads/master/webstore/PRIVACY.md
