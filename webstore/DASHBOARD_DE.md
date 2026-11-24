@@ -1,6 +1,6 @@
 # BraveSaver – Datenschutzfelder im Chrome Web Store
 
-Stand: BraveSaver 1.0.3. Die folgenden Texte sind für den bestehenden Store-Eintrag.
+Stand: BraveSaver 1.0.4. Die folgenden Texte sind für den bestehenden Store-Eintrag.
 
 ## Beschreibung des alleinigen Zwecks
 
@@ -12,7 +12,7 @@ BraveSaver verarbeitet Titel, URL, letzte Aktivität und Status offener Tabs lok
 
 ## storage
 
-BraveSaver speichert Einstellungen, Website-Ausnahmen, einfache Entladezähler und die zuletzt angezeigte Update-Version lokal im Browser. Während der Browsersitzung speichert es zu erkannten Eingaben die Tab-ID und eine Markierung. Eingegebener Text wird nicht gelesen oder gespeichert.
+BraveSaver speichert Einstellungen, Website-Ausnahmen, einfache Entladezähler und die zuletzt angezeigte Update-Version lokal im Browser. Während der Browsersitzung speichert es zu erkannten Eingaben Tab- und Frame-IDs mit einer Dokumentmarkierung. Eingegebener Text wird nicht gelesen oder gespeichert.
 
 ## alarms
 
@@ -32,7 +32,7 @@ Das Rechtsklickmenü bietet Befehle zum Entladen von Tabs und zum Hinzufügen vo
 
 ## Hostberechtigungen für HTTP und HTTPS
 
-Ein im Paket enthaltenes Seitenskript pausiert stumme Medien und CSS-Animationen in unsichtbaren Tabs und erkennt Eingabeereignisse für den Tab-Schutz. Es liest keine Feldwerte oder Passwörter. Der Zugriff auf HTTP- und HTTPS-Seiten ist erforderlich, damit diese Funktionen auf geöffneten Websites auch ohne vorherigen Klick auf das Erweiterungssymbol arbeiten.
+Ein im Paket enthaltenes Seitenskript pausiert stumme Medien und CSS-Animationen in unsichtbaren Tabs und erkennt Eingabeereignisse für den Tab-Schutz. Es läuft auch in unterstützten eingebetteten Editoren, einschließlich zugehöriger about:blank- und srcdoc-Frames. Es liest keine Feldwerte oder Passwörter. Der Zugriff auf HTTP- und HTTPS-Seiten ist erforderlich, damit diese Funktionen auch ohne vorherigen Klick auf das Erweiterungssymbol arbeiten.
 
 ## Remote-Code und Datennutzung
 

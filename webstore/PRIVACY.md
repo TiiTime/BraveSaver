@@ -1,8 +1,8 @@
 # BraveSaver Privacy Policy
 
-- Last updated: 2026-11-08
+- Last updated: 2026-11-24
 - Developer: Tii
-- Applies to BraveSaver 1.0.3
+- Applies to BraveSaver 1.0.4
 
 ## Purpose and local processing
 
@@ -13,7 +13,7 @@ BraveSaver processes open-tab metadata locally, including URLs, titles, last act
 ## Information stored in the browser
 
 - Local storage keeps preferences, site exceptions, basic unload counters and the last update version shown.
-- Session storage keeps tab IDs with a marker when an input event is detected on a supported page. The marker helps protect drafts from unloading. BraveSaver does not read or store what you typed, including form values and passwords.
+- Session storage keeps tab and frame IDs with a document marker when an input event is detected on a supported page or embedded editor. The marker helps protect drafts from unloading. BraveSaver does not read or store what you typed, including form values and passwords.
 - Session markers are cleared when their tabs close or the browser session ends. Persistent extension data can be removed by uninstalling BraveSaver.
 
 ## Network and third parties

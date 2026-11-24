@@ -1,10 +1,11 @@
-import { loadSettings, saveSettings } from "./lib/settings.js";
+import { loadSettings, normalizeWhitelist } from "./lib/settings.js";
 import { applyDom, normalizeLocale, t } from "./lib/i18n.js";
 
 const form = document.getElementById("form");
 const whitelistEl = document.getElementById("whitelist");
 const savedEl = document.getElementById("saved");
 const localeEl = document.getElementById("locale");
+let initialSettings;
 
 const checks = [
   "protectPinned",
@@ -42,42 +43,43 @@ function fill(settings) {
 }
 
 function parseWhitelist(text) {
-  const seen = new Set();
-  const hosts = [];
-  for (const line of text.split(/\n+/)) {
-    const host = line.trim().toLowerCase().replace(/^www\./, "");
-    if (!host || seen.has(host)) continue;
-    seen.add(host);
-    hosts.push(host);
-  }
-  return hosts;
+  return normalizeWhitelist(text.split(/\n+/).filter((line) => line.trim()));
+}
+
+async function saveSettings(patch) {
+  const result = await chrome.runtime.sendMessage({ type: "SAVE_SETTINGS", patch });
+  if (!result?.ok) throw new Error(result?.error || "Settings could not be saved");
+  return result.settings;
 }
 
 localeEl.addEventListener("change", async () => {
   const locale = normalizeLocale(localeEl.value);
   await saveSettings({ locale });
+  initialSettings.locale = locale;
   paintLocale(locale);
 });
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const patch = {
-    preset: "custom",
-    locale: normalizeLocale(localeEl.value),
-  };
+  const patch = {};
   for (const name of checks) {
-    patch[name] = form.elements[name].checked;
+    const value = form.elements[name].checked;
+    if (value !== initialSettings[name]) patch[name] = value;
   }
   for (const name of numbers) {
-    patch[name] = Number(form.elements[name].value);
+    const value = Number(form.elements[name].value);
+    if (value !== initialSettings[name]) patch[name] = value;
   }
-  patch.whitelist = parseWhitelist(whitelistEl.value);
-  await saveSettings(patch);
-  paintLocale(patch.locale);
+  const whitelist = parseWhitelist(whitelistEl.value);
+  if (JSON.stringify(whitelist) !== JSON.stringify(initialSettings.whitelist)) patch.whitelist = whitelist;
+  if (Object.keys(patch).length) patch.preset = "custom";
+  initialSettings = await saveSettings(patch);
+  fill(initialSettings);
   savedEl.hidden = false;
   window.setTimeout(() => {
     savedEl.hidden = true;
   }, 1600);
 });
 
-fill(await loadSettings());
+initialSettings = await loadSettings();
+fill(initialSettings);

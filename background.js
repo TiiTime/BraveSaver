@@ -15,6 +15,8 @@ const DIRTY_PREFIX = "dirtyTab:";
 let sweepQueue = Promise.resolve();
 let menuQueue = Promise.resolve();
 let openingUpdate = false;
+let wakeQueue = Promise.resolve();
+let formQueue = Promise.resolve();
 
 chrome.runtime.onInstalled.addListener((details) => {
   ensureAlarm();
@@ -64,7 +66,7 @@ chrome.tabs.onRemoved.addListener((tabId) => {
   markDirty(tabId, false).catch(() => {});
 });
 
-chrome.tabs.onUpdated.addListener((_tabId, changeInfo) => {
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   if (changeInfo.discarded !== undefined || changeInfo.status === "complete") {
     refreshBadge().catch(() => {});
   }
@@ -122,26 +124,61 @@ chrome.storage.onChanged.addListener((changes, area) => {
 });
 
 async function getDirtyIds() {
+  await formQueue;
   const stored = await chrome.storage.session.get(null);
   return new Set(Object.keys(stored)
     .filter((key) => key.startsWith(DIRTY_PREFIX))
-    .map((key) => Number(key.slice(DIRTY_PREFIX.length))));
+    .map((key) => Number(key.slice(DIRTY_PREFIX.length).split(":")[0])));
 }
 
-async function markDirty(tabId, dirty) {
-  const key = `${DIRTY_PREFIX}${tabId}`;
-  if (dirty) await chrome.storage.session.set({ [key]: true });
-  else await chrome.storage.session.remove(key);
+function markDirty(tabId, dirty, frameId = null, documentToken = "legacy", documentId, documentGone = false) {
+  const write = formQueue.then(async () => {
+    if (frameId === null) {
+      const stored = await chrome.storage.session.get(null);
+      const prefix = `${DIRTY_PREFIX}${tabId}`;
+      await chrome.storage.session.remove(Object.keys(stored).filter((key) => key === prefix || key.startsWith(prefix + ":")));
+      await chrome.storage.session.remove(`topDocument:${tabId}`);
+      return;
+    }
+    if (frameId === 0 && !documentGone) {
+      const topKey = `topDocument:${tabId}`;
+      const stored = await chrome.storage.session.get(null);
+      if (stored[topKey] !== documentToken) {
+        // A new top-level content script proves document replacement. Starting
+        // a navigation is insufficient: it may still be stopped or cancelled.
+        const prefix = `${DIRTY_PREFIX}${tabId}:`;
+        for (const [key, state] of Object.entries(stored)) {
+          if (!key.startsWith(prefix)) continue;
+          if (!state.documentId) {
+            await chrome.storage.session.remove(key);
+            continue;
+          }
+          const live = await chrome.tabs.sendMessage(tabId, { type: "GET_FORM_STATE" }, { documentId: state.documentId })
+            .catch(() => null);
+          if (!live?.dirty) await chrome.storage.session.remove(key);
+        }
+        await chrome.storage.session.set({ [topKey]: documentToken });
+      }
+    }
+    const key = `${DIRTY_PREFIX}${tabId}:${frameId}:${documentToken}`;
+    if (dirty) await chrome.storage.session.set({ [key]: { documentId } });
+    else await chrome.storage.session.remove(key);
+  });
+  formQueue = write.catch(() => {});
+  return write;
 }
 
 async function handleMessage(message, sender) {
   switch (message?.type) {
     case "FORM_DIRTY":
-      if (sender.tab?.id != null) await markDirty(sender.tab.id, true);
+      if (sender.tab?.id != null) await markDirty(sender.tab.id, true, sender.frameId ?? 0, message.documentToken, sender.documentId);
       return { ok: true };
     case "FORM_CLEAN":
-      if (sender.tab?.id != null) await markDirty(sender.tab.id, false);
+    case "FORM_GONE":
+      if (sender.tab?.id != null) await markDirty(sender.tab.id, false, sender.frameId ?? 0, message.documentToken, sender.documentId, message.type === "FORM_GONE");
       return { ok: true };
+    case "SAVE_SETTINGS":
+      return { ok: true, settings: await saveSettings(message.patch || {}) };
     case "GET_STATUS":
       return snapshot();
     case "SET_ENABLED":
@@ -151,21 +188,23 @@ async function handleMessage(message, sender) {
     case "SET_PRESET":
       await applyPreset(message.preset);
       return snapshot();
-    case "PARK_NOW":
-      await sweep("manual", { ignoreIdle: true });
-      return snapshot();
+    case "PARK_NOW": {
+      const result = await sweep("manual", { ignoreIdle: true });
+      return { ...await snapshot(), result };
+    }
     case "WAKE_ALL":
       await wakeDiscardedTabs();
       return snapshot();
     case "PARK_TAB":
+      let result;
       if (message.tabId != null) {
-        await discardIfSafe(message.tabId);
+        result = await discardIfSafe(message.tabId);
       }
       await refreshBadge();
-      return snapshot();
+      return { ...await snapshot(), result };
     case "WAKE_TAB":
       if (message.tabId != null) {
-        await chrome.tabs.reload(message.tabId);
+        await wakeTabs([message.tabId]);
       }
       return snapshot();
     case "FOCUS_TAB":
@@ -209,35 +248,41 @@ async function discardedTabs() {
 
 async function wakeDiscardedTabs() {
   const parked = await discardedTabs();
-  for (const tab of parked) {
-    try {
-      await chrome.tabs.reload(tab.id);
-    } catch {
-      // Tab gone.
-    }
-  }
+  await wakeTabs(parked.map((tab) => tab.id));
   await refreshBadge();
+}
+
+function wakeTabs(ids) {
+  const pending = wakeQueue.then(async () => {
+    for (const id of ids) {
+      const tab = await chrome.tabs.get(id).catch(() => null);
+      if (tab?.discarded) await chrome.tabs.reload(id).catch(() => {});
+    }
+  });
+  wakeQueue = pending.catch(() => {});
+  return pending;
 }
 
 async function discardIfSafe(tabId) {
   const settings = await loadSettings();
   const dirtyIds = await getDirtyIds();
   const tab = await chrome.tabs.get(tabId);
-  if (tab.discarded || protectionReason(tab, settings, dirtyIds)) return false;
+  const reason = protectionReason(tab, settings, dirtyIds);
+  if (tab.discarded || reason) return { unloaded: false, reason: reason || "alreadyUnloaded" };
 
   if (settings.protectForms) {
     // Treat a missing content script as unknown rather than assuming no draft.
-    const state = await chrome.tabs.sendMessage(tabId, { type: "GET_FORM_STATE" })
+    const state = await chrome.tabs.sendMessage(tabId, { type: "GET_FORM_STATE" }, { frameId: 0 })
       .catch(() => null);
-    if (state?.dirty !== false) return false;
+    if (state?.dirty !== false) return { unloaded: false, reason: state?.dirty ? "protectDraft" : "protectUnknown" };
   }
 
   const latestDirtyIds = await getDirtyIds();
   const latest = await chrome.tabs.get(tabId);
   if (latest.discarded || latest.url !== tab.url || latest.status === "loading" ||
-      protectionReason(latest, settings, latestDirtyIds)) return false;
+      protectionReason(latest, settings, latestDirtyIds)) return { unloaded: false, reason: "tabChanged" };
   const discarded = await chrome.tabs.discard(tabId);
-  return discarded?.discarded === true;
+  return { unloaded: discarded?.discarded === true, reason: "unloadFailed" };
 }
 
 function sweep(reason, options) {
@@ -285,14 +330,19 @@ async function runSweep(reason, { ignoreIdle = false, keepTabId = null } = {}) {
   }
 
   let parked = 0;
+  let skipped = 0;
   const parkedIds = [];
   for (const item of candidates) {
     try {
-      if (!await discardIfSafe(item.tab.id)) continue;
+      if (!(await discardIfSafe(item.tab.id)).unloaded) {
+        skipped++;
+        continue;
+      }
       parked += 1;
       parkedIds.push(item.tab.id);
     } catch {
       // Some tabs (chrome://, DevTools) refuse discard.
+      skipped++;
     }
   }
 
@@ -308,7 +358,7 @@ async function runSweep(reason, { ignoreIdle = false, keepTabId = null } = {}) {
   });
 
   await refreshBadge();
-  return { parked, parkedIds };
+  return { parked, parkedIds, skipped };
 }
 
 async function snapshot() {

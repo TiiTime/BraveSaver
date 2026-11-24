@@ -1,5 +1,7 @@
 # BraveSaver
 
+Aktueller lokaler Stand: **1.0.4**. Verbesserter Eingabeschutz in eingebetteten Editoren, sicheres Wecken bereits geladener Tabs und ein automatisch aktualisiertes Popup.
+
 MV3-Extension für **Brave** (Chromium). Drosselt die Hintergrundlast geladener Tabs und kann optional Tabs entladen.
 
 - **Chrome Web Store:** https://chromewebstore.google.com/detail/bravesaver/biaipdcolloigdioodclahglfphchpca

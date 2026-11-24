@@ -1,6 +1,8 @@
 let pauseMutedVideo = true;
 let pauseAnimations = true;
 let dirty = false;
+const pausedMedia = new Set();
+const documentToken = Array.from(crypto.getRandomValues(new Uint32Array(4)), (value) => value.toString(16)).join("-");
 
 chrome.storage.local.get("settings").then((stored) => {
   applySettings(stored.settings || {});
@@ -12,9 +14,16 @@ chrome.storage.onChanged.addListener((changes, area) => {
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, respond) => {
-  if (message?.type === "GET_FORM_STATE") respond({ dirty });
+  if (message?.type === "GET_FORM_STATE") respond({ dirty, documentToken });
 });
-chrome.runtime.sendMessage({ type: "FORM_CLEAN" }).catch(() => {});
+function reportFormState() {
+  chrome.runtime.sendMessage({ type: dirty ? "FORM_DIRTY" : "FORM_CLEAN", documentToken }).catch(() => {});
+}
+reportFormState();
+window.addEventListener("pageshow", reportFormState);
+window.addEventListener("pagehide", () => {
+  chrome.runtime.sendMessage({ type: "FORM_GONE", documentToken }).catch(() => {});
+});
 
 document.addEventListener("visibilitychange", syncHiddenState, { passive: true });
 document.addEventListener("play", onPlay, true);
@@ -24,11 +33,10 @@ document.addEventListener(
     if (dirty) return;
     if (!isFormish(event.target)) return;
     dirty = true;
-    chrome.runtime.sendMessage({ type: "FORM_DIRTY" }).catch(() => {});
+    reportFormState();
   },
   { capture: true, passive: true }
 );
-syncHiddenState();
 
 function applySettings(next) {
   pauseMutedVideo = next.pauseHiddenMutedVideo !== false;
@@ -56,10 +64,38 @@ function isFormish(node) {
 function onPlay(event) {
   const media = event.target;
   if (!(media instanceof HTMLMediaElement)) return;
+  if (!document.hidden || !pauseMutedVideo) {
+    pausedMedia.delete(media);
+    return;
+  }
+  if (!media.paused && (media.muted || media.volume === 0)) {
+    pauseMedia(media);
+  }
+}
+
+function pauseMedia(media) {
+  pausedMedia.add(media);
+  media.pause();
+}
+
+// Observe inserted players only while a hidden page needs media throttling.
+const mediaObserver = new MutationObserver((records) => {
+  for (const media of pausedMedia) {
+    if (!media.isConnected) pausedMedia.delete(media);
+  }
+  for (const record of records) {
+    for (const node of record.addedNodes) {
+      if (node instanceof HTMLMediaElement) onPlay({ target: node });
+      for (const media of node.querySelectorAll?.("video, audio") || []) onPlay({ target: media });
+    }
+  }
+});
+document.addEventListener("volumechange", onPlay, true);
+
+function syncMedia() {
   if (!document.hidden || !pauseMutedVideo) return;
-  if (media.muted || media.volume === 0) {
-    media.pause();
-    media.dataset.bsPaused = "1";
+  for (const media of document.querySelectorAll("video, audio")) {
+    if (!media.paused && (media.muted || media.volume === 0)) pauseMedia(media);
   }
 }
 
@@ -70,13 +106,14 @@ function syncHiddenState() {
     hidden && pauseAnimations
   );
 
-  for (const media of document.querySelectorAll("video, audio")) {
-    if (hidden && pauseMutedVideo && !media.paused && (media.muted || media.volume === 0)) {
-      media.pause();
-      media.dataset.bsPaused = "1";
-    } else if ((!hidden || !pauseMutedVideo) && media.dataset.bsPaused === "1") {
-      delete media.dataset.bsPaused;
-      media.play().catch(() => {});
-    }
+  mediaObserver.disconnect();
+  if (hidden && pauseMutedVideo) {
+    mediaObserver.observe(document, { childList: true, subtree: true });
+    syncMedia();
+    return;
   }
+  for (const media of pausedMedia) {
+    if (media.isConnected && media.paused) media.play().catch(() => {});
+  }
+  pausedMedia.clear();
 }
